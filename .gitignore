@@ -1,0 +1,37 @@
+### Docker & Build
+.docker/
+!.docker/ignore
+
+# Vendor & dependências
+/vendor/
+src/vendor/
+
+### Coverage & Cache
+/build/
+.phpunit.cache/
+/phpunit.cache/
+.phpunit.result.cache
+.phpunit.watcher.json
+
+### IDE
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+
+### Local config
+.env
+.env.local
+.env.test
+
+### OS & Editors
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+### Logs & Temp
+*.log
+xdebug.log
+docker-compose.log
+*.tmp

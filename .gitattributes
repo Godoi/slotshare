@@ -1,0 +1,36 @@
+# Define default behavior for all files
+* text=auto
+
+# Explicitly declare text files (will be normalized to LF on commit)
+*.php      text eol=lf
+*.json     text eol=lf
+*.xml      text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+*.md       text eol=lf
+*.ini      text eol=lf
+*.conf     text eol=lf
+*.sh       text eol=lf executable
+
+# Explicitly declare binary files (prevent Git from trying to diff or normalize)
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.lock     binary
+*.phar     binary
+
+# Docker & CI
+*.dockerfile text eol=lf
+Dockerfile   text eol=lf
+
+# Composer
+composer.lock text eol=lf
+
+# PHPUnit & coverage
+.phpunit.cache/** binary
+build/coverage/** binary
+
+# Normalize line endings, but don't enforce on checkout (safer for WSL2)
+# End-of-line conversion: commit as LF, checkout as-is (native)
+* text=auto eol=lf

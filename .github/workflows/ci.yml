@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpass
+          MYSQL_DATABASE: app_db
+          MYSQL_USER: app_user
+          MYSQL_PASSWORD: app_pass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -u root -prootpass"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, xdebug, mbstring, intl
+          tools: composer
+          coverage: xdebug
+
+      - name: Validate composer.json and composer.lock
+        run: composer validate
+
+      - name: Install dependencies (if vendor/ missing)
+        run: |
+          if [ ! -d "vendor" ] || [ ! -f "vendor/autoload.php" ]; then
+            composer install --prefer-dist --no-progress --no-suggest
+          else
+            echo "✅ vendor/ já existe — usando cópia local"
+          fi
+
+      - name: Run tests
+        run: |
+          # Garante que o phpunit é executável
+          if [ ! -x "vendor/bin/phpunit" ]; then
+            chmod +x vendor/phpunit/phpunit/phpunit
+            ln -sf ../phpunit/phpunit/phpunit vendor/bin/phpunit
+          fi
+          ./vendor/bin/phpunit --testdox
+
+      - name: Generate and upload coverage to Codecov
+        run: |
+          ./vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        env:
+          XDEBUG_MODE: coverage
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: build/logs/clover.xml
+          flags: unittests
+          name: PHPUnit
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')

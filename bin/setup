@@ -1,0 +1,72 @@
+#!/bin/bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$SCRIPT_DIR/.."
+
+cd "$ROOT_DIR"
+
+echo "🔧 Iniciando setup do Lab Modern PHP..."
+echo
+
+# 1. Build dos containers (se ainda não existirem)
+if ! docker-compose ps | grep -q "php-app.*Up"; then
+  echo "🐳 Subindo ambiente Docker..."
+  docker-compose up -d --build
+  sleep 3
+fi
+
+# 2. Verifica se Composer está funcionando
+echo "📦 Verificando Composer..."
+if ! docker-compose run --rm cli composer --version > /dev/null 2>&1; then
+  echo "❌ Falha ao acessar o Composer. Verifique o Dockerfile."
+  exit 1
+fi
+
+# 3. Instala dependências (se composer.json existir)
+if [ -f composer.json ]; then
+  echo "📥 Instalando dependências (composer install)..."
+  docker-compose run --rm cli composer install --prefer-dist --no-interaction
+fi
+
+# 4. Inicializa estrutura de testes (se não existir)
+if [ ! -d tests ] || [ ! -f tests/ExampleTest.php ]; then
+  echo "🧪 Criando estrutura mínima de testes..."
+  mkdir -p tests
+  cat > tests/ExampleTest.php <<'EOF'
+<?php
+use PHPUnit\Framework\TestCase;
+
+class ExampleTest extends TestCase
+{
+    public function testTrueIsTrue(): void
+    {
+        $this->assertTrue(true);
+    }
+
+    public function testXdebugAndPdoMysql(): void
+    {
+        $this->assertTrue(extension_loaded('xdebug'), 'Xdebug não carregado');
+        $this->assertTrue(extension_loaded('pdo_mysql'), 'pdo_mysql não carregado');
+    }
+}
+EOF
+fi
+
+# 5. Roda os testes com cobertura
+echo "✅ Rodando testes iniciais..."
+docker-compose run --rm cli ./vendor/bin/phpunit --testdox
+
+# 6. Gera relatório de cobertura (opcional, comentado por padrão)
+# echo "📊 Gerando relatório de cobertura..."
+# mkdir -p build
+# docker-compose run --rm cli ./vendor/bin/phpunit --coverage-html build/coverage
+
+echo
+echo "🎉 Setup concluído!"
+echo
+echo "Próximos passos:"
+echo "  🔗 Acesse http://localhost:8080"
+echo "  🧪 Execute testes: ./bin/test"
+echo "  🐞 Debug no VS Code: abra .vscode/launch.json e inicie uma sessão"

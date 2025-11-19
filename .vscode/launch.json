@@ -1,0 +1,42 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Listen for Xdebug (web)",
+      "type": "php",
+      "request": "launch",
+      "port": 9003,
+      "pathMappings": {
+        "/var/www/html": "${workspaceFolder}/src"
+      },
+      "log": false
+    },
+    {
+      "name": "Debug PHPUnit test (CLI)",
+      "type": "php",
+      "request": "launch",
+      "port": 9003,
+      "program": "${workspaceFolder}/vendor/bin/phpunit",
+      "args": ["--configuration", "phpunit.xml"],
+      "cwd": "${workspaceFolder}",
+      "pathMappings": {
+        "/var/www/html": "${workspaceFolder}/src",
+        "/var/www/tests": "${workspaceFolder}/tests"
+      },
+      "env": {
+        "XDEBUG_MODE": "debug,coverage"
+      }
+    },
+    {
+      "name": "Debug script CLI",
+      "type": "php",
+      "request": "launch",
+      "port": 9003,
+      "program": "${file}",
+      "cwd": "${workspaceFolder}",
+      "pathMappings": {
+        "/var/www/html": "${workspaceFolder}/src"
+      }
+    }
+  ]
+}
